@@ -44,9 +44,14 @@ if ($Ci) {
 
 Invoke-Step 'Build' { dotnet build $solution --configuration Release --no-restore }
 
-$filter = 'Category=unit|Category=architecture|Category=golden'
-if ($Scope -eq 'full') { $filter = "$filter|Category=ui" }
-Invoke-Step "Test ($Scope)" { dotnet test $solution --configuration Release --no-build --filter $filter }
-
+# Test projects are selected by scope; UI tests (slow, pixel snapshots) run only in full scope.
+# Microsoft Testing Platform (global.json) fails a project that runs zero tests, so a test
+# framework change that silently stops discovering tests breaks the build instead of passing.
+$projects = Get-ChildItem -Path (Join-Path $root 'tests') -Filter '*.Tests.csproj' -Recurse |
+    Where-Object { $Scope -eq 'full' -or $_.BaseName -notlike '*.Ui.Tests' } |
+    Sort-Object BaseName
+foreach ($project in $projects) {
+    Invoke-Step "Test $($project.BaseName)" { dotnet test --project $project.FullName --configuration Release --no-build }
+}
 & (Join-Path $PSScriptRoot 'size-report.ps1')
 Write-Host "verify ($Scope) passed." -ForegroundColor Green

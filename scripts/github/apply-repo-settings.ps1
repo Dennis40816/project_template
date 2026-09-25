@@ -77,14 +77,14 @@ $namesRuleset = @{
 } | ConvertTo-Json -Depth 8
 Invoke-Gh 'Ruleset: branch names' @('api', '--method', 'POST', "repos/$Repo/rulesets") $namesRuleset
 
-# Tags: v* tags are created only by the release workflow (GitHub Actions app, id 15368).
+# Tags: a published v* tag can never be moved or deleted. Personal accounts cannot make GitHub
+# Actions a bypass actor, so creation stays open; release.yml refuses a tag that already exists.
 $tagRuleset = @{
-    name          = 'release-tags'
-    target        = 'tag'
-    enforcement   = 'active'
-    conditions    = @{ ref_name = @{ include = @('refs/tags/v*'); exclude = @() } }
-    rules         = @(@{ type = 'creation' }, @{ type = 'update' }, @{ type = 'deletion' })
-    bypass_actors = @(@{ actor_id = 15368; actor_type = 'Integration'; bypass_mode = 'always' })
+    name        = 'release-tags'
+    target      = 'tag'
+    enforcement = 'active'
+    conditions  = @{ ref_name = @{ include = @('refs/tags/v*'); exclude = @() } }
+    rules       = @(@{ type = 'update' }, @{ type = 'deletion' })
 } | ConvertTo-Json -Depth 8
 Invoke-Gh 'Ruleset: release tags' @('api', '--method', 'POST', "repos/$Repo/rulesets") $tagRuleset
 

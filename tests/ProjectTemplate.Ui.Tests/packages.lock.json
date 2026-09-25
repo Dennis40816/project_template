@@ -355,7 +355,7 @@
           "Avalonia": "[12.1.3, )",
           "Avalonia.Desktop": "[12.1.3, )",
           "Avalonia.Fonts.Inter": "[12.1.3, )",
-          "Avalonia.Themes.Fluent": "[12.0.5, )",
+          "Avalonia.Themes.Fluent": "[12.1.3, )",
           "CommunityToolkit.Mvvm": "[8.4.2, )",
           "ProjectTemplate.Application": "[0.1.0, )",
           "ProjectTemplate.Bootstrap": "[0.1.0, )"
@@ -406,11 +406,11 @@
       },
       "Avalonia.Themes.Fluent": {
         "type": "CentralTransitive",
-        "requested": "[12.0.5, )",
-        "resolved": "12.0.5",
-        "contentHash": "QfbziOuzNQzMd0uCbe//p4o1u6EAesEpX41fUCULBaLENd5OAT6iU0GiN9gzhSzVfSjHuxDcafXqJMxi3H3IhA==",
+        "requested": "[12.1.3, )",
+        "resolved": "12.1.3",
+        "contentHash": "ens/GHfXXk0W1ZScHZ2XG6DFiVyUVKR+0O8QK6zkviMNAPQCNwkftXlRVSFSQGtBYxXoJHZMsKYvCLEtVyzkug==",
         "dependencies": {
-          "Avalonia": "12.0.5"
+          "Avalonia": "12.1.3"
         }
       },
       "CommunityToolkit.Mvvm": {

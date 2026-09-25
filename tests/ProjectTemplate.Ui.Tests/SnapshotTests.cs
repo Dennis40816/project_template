@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media.Imaging;
 using ProjectTemplate.Bootstrap;
 using ProjectTemplate.Desktop;
 using ProjectTemplate.Desktop.Shell;
@@ -29,7 +30,7 @@ public sealed class SnapshotTests
         string approved = Path.Combine(directory, "main-window.approved.png");
         string received = Path.Combine(directory, "main-window.received.png");
         Directory.CreateDirectory(directory);
-        frame.Save(received);
+        frame.Save(received, PngBitmapEncoderOptions.Default);
 
         if (!File.Exists(approved))
         {

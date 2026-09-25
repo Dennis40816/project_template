@@ -28,6 +28,8 @@
    ```
 
    私有 repo 的 rulesets 與 environment reviewer 需要付費方案；做不到的步驟會顯示警告並略過。
+   免費方案的私有 repo 只會套用合併設定、labels 與不需核准的 `release` environment，
+   「只能透過 PR 進 main」與「tag 只能由 workflow 建立」就只剩 CI 與習慣在守。
 5. 改寫 `CONTEXT.md`（領域詞彙）與 `docs/spec.md`（產品規格），刪掉範例功能 `Inspect`（或留著當參考）。
 6. 第一週內用 release workflow 發出 `v0.1.0`，讓發版路徑一開始就被實際跑過。
 

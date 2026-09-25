@@ -38,6 +38,10 @@ if ($Reviewer) {
     $envBody = (@{ reviewers = @(@{ type = 'User'; id = [int64]$id }) } | ConvertTo-Json -Depth 4 -Compress)
 }
 Invoke-Gh 'Release environment' @('api', '--method', 'PUT', "repos/$Repo/environments/release") $envBody
+if ($LASTEXITCODE -ne 0 -and $Reviewer) {
+    # Free plans reject reviewers on private repositories; keep the environment so release.yml still runs.
+    Invoke-Gh 'Release environment (no reviewer)' @('api', '--method', 'PUT', "repos/$Repo/environments/release") '{}'
+}
 
 # main: pull requests only, linear history, required CI result.
 $mainRuleset = @{

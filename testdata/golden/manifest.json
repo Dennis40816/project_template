@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "description": "Golden cases. Expected outputs change only with an owner-approved behavior change; record who approved it and why.",
+  "cases": [
+    {
+      "id": "inspect-sample-256",
+      "command": ["inspect", "{input}"],
+      "input": "cases/sample-256.bin",
+      "inputSha256": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880",
+      "expected": "cases/sample-256.expected.json",
+      "source": "synthetic: bytes 0x00..0xFF",
+      "approvedBy": "Dennis Liu",
+      "approvedOn": "2026-09-25"
+    },
+    {
+      "id": "inspect-empty",
+      "command": ["inspect", "{input}"],
+      "input": "cases/empty.bin",
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "cases/empty.expected.json",
+      "source": "synthetic: zero-length file",
+      "approvedBy": "Dennis Liu",
+      "approvedOn": "2026-09-25"
+    }
+  ]
+}

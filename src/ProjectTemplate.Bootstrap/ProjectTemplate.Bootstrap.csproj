@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The composition root: the only project that knows every implementation. -->
+  <ItemGroup>
+    <ProjectReference Include="..\ProjectTemplate.Application\ProjectTemplate.Application.csproj" />
+    <ProjectReference Include="..\ProjectTemplate.Infrastructure\ProjectTemplate.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

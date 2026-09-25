@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: PR title is a Conventional Commit (it becomes the squash commit)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! printf '%s' "$TITLE" | grep -Eq '^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .+'; then
+            echo "::error::PR title must look like 'feat(inspect): show file size'. Got: $TITLE"
+            exit 1
+          fi
+
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Detect documentation-only change
+        id: scope
+        shell: pwsh
+        run: |
+          $docsOnly = 'false'
+          if ('${{ github.event_name }}' -eq 'pull_request') {
+            $files = git diff --name-only '${{ github.event.pull_request.base.sha }}' '${{ github.event.pull_request.head.sha }}'
+            if ($files -and -not ($files | Where-Object { $_ -notmatch '^docs/' -and $_ -notmatch '\.md$' })) { $docsOnly = 'true' }
+          }
+          "docs-only=$docsOnly" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Set up .NET
+        if: steps.scope.outputs.docs-only != 'true'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Verify
+        if: steps.scope.outputs.docs-only != 'true'
+        shell: pwsh
+        run: ./scripts/verify.ps1 -Scope pr -Ci
+
+  # The only required status check. Its name never changes.
+  ci-result:
+    if: always()
+    needs: [pr-title, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: All jobs passed or were skipped
+        run: |
+          for result in '${{ needs.pr-title.result }}' '${{ needs.verify.result }}'; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "::error::A CI job ended with '$result'."
+              exit 1
+            fi
+          done

@@ -1,0 +1,13 @@
+<Window
+    x:Class="ProjectTemplate.Desktop.Shell.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:shell="using:ProjectTemplate.Desktop.Shell"
+    xmlns:inspect="using:ProjectTemplate.Desktop.Features.Inspect"
+    x:DataType="shell:MainWindowViewModel"
+    Title="{Binding Title}"
+    Width="720"
+    Height="420">
+  <!-- The shell only hosts feature views. Feature logic lives in Features/<Name>/. -->
+  <inspect:InspectView DataContext="{Binding Inspect}" />
+</Window>

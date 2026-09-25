@@ -1,0 +1,21 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Design tokens. Views use these instead of literal sizes and colors. -->
+  <Thickness x:Key="Space.Page">24</Thickness>
+  <x:Double x:Key="Space.Stack">12</x:Double>
+  <x:Double x:Key="Font.Title">20</x:Double>
+  <x:Double x:Key="Font.Mono">13</x:Double>
+  <FontFamily x:Key="Font.MonoFamily">Cascadia Mono, Consolas, monospace</FontFamily>
+
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="Brush.Error" Color="#B3261E" />
+      <SolidColorBrush x:Key="Brush.Muted" Color="#5F6368" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="Brush.Error" Color="#F2B8B5" />
+      <SolidColorBrush x:Key="Brush.Muted" Color="#9AA0A6" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

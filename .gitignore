@@ -1,0 +1,11 @@
+bin/
+obj/
+artifacts/
+TestResults/
+.vs/
+.idea/
+*.user
+*.suo
+.packages/
+# UI snapshot candidates are written here; approved images live next to the tests.
+tests/**/__snapshots__/*.received.png

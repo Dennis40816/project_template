@@ -1,0 +1,140 @@
+name: Release
+
+# Run from main with the exact commit to release. PREPARE_ONLY builds and smokes a candidate;
+# PUBLISH also waits for approval in the `release` environment, then tags and publishes.
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact 40-character main commit to release (must be main HEAD)
+        required: true
+        type: string
+      confirm_publish:
+        description: Prepare a candidate only, or publish after approval
+        required: true
+        default: PREPARE_ONLY
+        type: choice
+        options: [PREPARE_ONLY, PUBLISH]
+      summary:
+        description: One-paragraph human summary placed above the generated notes
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    if: github.ref == 'refs/heads/main' && inputs.source_sha == github.sha
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.identity.outputs.version }}
+      tag: ${{ steps.identity.outputs.tag }}
+      artifact-name: ${{ steps.identity.outputs.artifact-name }}
+    steps:
+      - name: Check out the exact commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Validate release identity
+        id: identity
+        shell: pwsh
+        run: |
+          if ('${{ inputs.source_sha }}' -notmatch '^[0-9a-f]{40}$') { throw 'source_sha must be a lowercase 40-character SHA.' }
+          if ((git rev-parse HEAD).Trim() -ne '${{ inputs.source_sha }}') { throw 'Checked-out commit differs from source_sha.' }
+          $version = (Get-Content -LiteralPath ./VERSION -Raw).Trim()
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw "VERSION must be X.Y.Z, found '$version'." }
+          $tag = "v$version"
+          if (git tag --list $tag) { throw "Tag $tag already exists. Bump VERSION in a pull request first." }
+          $latest = git tag --list 'v*' --sort=-v:refname | Select-Object -First 1
+          if ($latest -and ([version]$version -le [version]$latest.TrimStart('v'))) { throw "VERSION $version is not newer than $latest." }
+          $product = (Get-ChildItem -Filter '*.slnx' | Select-Object -First 1).BaseName
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "artifact-name=$product-$tag-candidate-${{ github.run_id }}" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Verify (full scope, including UI snapshots)
+        shell: pwsh
+        run: ./scripts/verify.ps1 -Scope full -Ci
+
+      - name: Package and smoke the candidate
+        shell: pwsh
+        run: |
+          ./scripts/package.ps1 -Version '${{ steps.identity.outputs.version }}' -Commit '${{ inputs.source_sha }}'
+          $zip = Get-ChildItem ./artifacts/release -Filter '*.zip' | Select-Object -First 1
+          ./scripts/smoke-package.ps1 -PackagePath $zip.FullName
+
+      - name: Upload candidate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.identity.outputs.artifact-name }}
+          path: artifacts/release/*
+          if-no-files-found: error
+          retention-days: 5
+
+  promote:
+    if: inputs.confirm_publish == 'PUBLISH'
+    needs: candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Download the reviewed candidate
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: ${{ needs.candidate.outputs.artifact-name }}
+          path: artifacts/release
+
+      - name: Create annotated tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ inputs.source_sha }}
+          TAG: ${{ needs.candidate.outputs.tag }}
+          SUMMARY: ${{ inputs.summary }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$REPO/git/ref/tags/$TAG" >/dev/null 2>&1; then echo "Tag $TAG already exists"; exit 1; fi
+          tag_object=$(gh api --method POST "repos/$REPO/git/tags" \
+            -f tag="$TAG" -f message="$TAG from $SHA (run ${{ github.run_id }})" \
+            -f object="$SHA" -f type=commit --jq '.sha')
+          gh api --method POST "repos/$REPO/git/refs" -f ref="refs/tags/$TAG" -f sha="$tag_object" >/dev/null
+          gh release create "$TAG" artifacts/release/* --repo "$REPO" --verify-tag \
+            --title "$TAG" --notes "${SUMMARY:-}" --generate-notes
+
+  published-smoke:
+    if: inputs.confirm_publish == 'PUBLISH'
+    needs: [candidate, promote]
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out smoke tooling at the released commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+
+      - name: Download what users download
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download '${{ needs.candidate.outputs.tag }}' --repo '${{ github.repository }}' --dir ./artifacts/published
+          if ($LASTEXITCODE -ne 0) { throw 'Download of the published release failed.' }
+
+      - name: Smoke the published package
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem ./artifacts/published -Filter '*.zip' | Select-Object -First 1
+          ./scripts/smoke-package.ps1 -PackagePath $zip.FullName

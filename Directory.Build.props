@@ -1,0 +1,37 @@
+<Project>
+  <!-- Shared build settings. Every rule here is enforced by the compiler, not by review. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Quality: warnings fail the build; analyzers and code style run on every build. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <!-- Reproducible builds. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <DebugType>embedded</DebugType>
+
+    <!-- Dependency safety. CI restores with locked mode. -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+    <!-- Identity. VERSION at the repository root is the only version source. -->
+    <Product>ProjectTemplate</Product>
+    <Authors>Dennis Liu</Authors>
+    <Copyright>Copyright © Dennis Liu</Copyright>
+    <RepositoryVersionFile>$(MSBuildThisFileDirectory)VERSION</RepositoryVersionFile>
+    <ProductVersion>$([System.IO.File]::ReadAllText('$(RepositoryVersionFile)').Trim())</ProductVersion>
+    <VersionCore>$([System.Text.RegularExpressions.Regex]::Replace('$(ProductVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+).*$', '$1.$2.$3'))</VersionCore>
+    <Version>$(VersionCore)</Version>
+    <AssemblyVersion>$(VersionCore).0</AssemblyVersion>
+    <FileVersion>$(VersionCore).0</FileVersion>
+    <InformationalVersion>$(ProductVersion)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+</Project>

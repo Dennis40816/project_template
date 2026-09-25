@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <!-- References every product project so compiled references can be inspected. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ProjectTemplate.Domain\ProjectTemplate.Domain.csproj" />
+    <ProjectReference Include="..\..\src\ProjectTemplate.Application\ProjectTemplate.Application.csproj" />
+    <ProjectReference Include="..\..\src\ProjectTemplate.Infrastructure\ProjectTemplate.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\ProjectTemplate.Bootstrap\ProjectTemplate.Bootstrap.csproj" />
+    <ProjectReference Include="..\..\src\ProjectTemplate.Desktop\ProjectTemplate.Desktop.csproj" />
+    <ProjectReference Include="..\..\src\ProjectTemplate.Cli\ProjectTemplate.Cli.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

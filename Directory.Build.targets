@@ -1,0 +1,14 @@
+<Project>
+  <!-- Reference material (for example a legacy tool kept for comparison) lives under refcode/.
+       It must never be compiled into a product assembly. -->
+  <Target Name="ForbidReferenceCodeInProduct" BeforeTargets="CoreCompile" Condition="'$(IsTestProject)' != 'true'">
+    <ItemGroup>
+      <_ForbiddenReferenceCode Include="@(Compile)" Condition="$([System.String]::Copy('%(Compile.FullPath)').Replace('\', '/').Contains('/refcode/'))" />
+    </ItemGroup>
+    <Error Condition="'@(_ForbiddenReferenceCode)' != ''" Text="Files under refcode/ must not be compiled into $(MSBuildProjectName): @(_ForbiddenReferenceCode)" />
+  </Target>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

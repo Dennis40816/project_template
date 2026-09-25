@@ -1,0 +1,25 @@
+<UserControl
+    x:Class="ProjectTemplate.Desktop.Features.Inspect.InspectView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:inspect="using:ProjectTemplate.Desktop.Features.Inspect"
+    x:DataType="inspect:InspectViewModel">
+  <StackPanel Margin="{StaticResource Space.Page}" Spacing="{StaticResource Space.Stack}">
+    <TextBlock Text="Inspect a file" FontSize="{StaticResource Font.Title}" FontWeight="SemiBold" />
+    <TextBlock Text="Computes the length and SHA-256 of a file."
+               Foreground="{DynamicResource Brush.Muted}" />
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource Space.Stack}">
+      <TextBox x:Name="PathBox" Text="{Binding Path}" PlaceholderText="File path" />
+      <Button x:Name="InspectButton" Grid.Column="1" Content="Inspect" Command="{Binding InspectCommand}" />
+    </Grid>
+    <TextBlock x:Name="LengthText" Text="{Binding LengthText}" />
+    <SelectableTextBlock x:Name="Sha256Text"
+                         Text="{Binding Sha256}"
+                         FontFamily="{StaticResource Font.MonoFamily}"
+                         FontSize="{StaticResource Font.Mono}" />
+    <TextBlock x:Name="ErrorText"
+               Text="{Binding ErrorMessage}"
+               Foreground="{DynamicResource Brush.Error}"
+               TextWrapping="Wrap" />
+  </StackPanel>
+</UserControl>

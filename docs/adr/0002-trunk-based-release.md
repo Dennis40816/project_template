@@ -10,7 +10,8 @@
 ## 決定
 
 - `main` 是唯一長命分支；功能用短命分支，經 PR squash merge。
-- 分支名稱、`main` 保護、`v*` tag 建立權限都用 GitHub ruleset 強制（`scripts/github/apply-repo-settings.ps1`）。
+- 分支名稱與 `main` 保護用 GitHub ruleset 強制（`scripts/github/apply-repo-settings.ps1`）；`v*` tag 建立後不能移動或刪除。
+  個人帳號無法把 GitHub Actions 設為 ruleset 例外，所以「只有 workflow 建 tag」由 release workflow 拒絕既有 tag 來守。
 - `VERSION` 是唯一版本來源；release workflow 檢查版本、建立 tag、打包、發布、下載後再驗一次。
 - Release notes 由 PR 標題自動產生，不維護 CHANGELOG 檔。
 - 只有要修補舊版時才開 `release/X.Y`。

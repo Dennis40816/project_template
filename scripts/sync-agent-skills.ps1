@@ -2,6 +2,7 @@
 .SYNOPSIS
   .agents/skills is the single source of agent skills. This script writes the identical
   projection that Claude Code reads (.claude/skills). With -Check it only reports drift.
+  Files are compared and copied as bytes, so no text encoding can change them.
 #>
 [CmdletBinding()]
 param([switch]$Check)
@@ -11,18 +12,25 @@ $root = Split-Path -Parent $PSScriptRoot
 $source = Join-Path $root '.agents/skills'
 $target = Join-Path $root '.claude/skills'
 
+function Test-SameBytes([string]$A, [string]$B) {
+    if (-not (Test-Path -LiteralPath $B)) { return $false }
+    $left = [IO.File]::ReadAllBytes($A)
+    $right = [IO.File]::ReadAllBytes($B)
+    if ($left.Length -ne $right.Length) { return $false }
+    for ($i = 0; $i -lt $left.Length; $i++) { if ($left[$i] -ne $right[$i]) { return $false } }
+    return $true
+}
+
 $drift = @()
 $sourceSkills = @(Get-ChildItem -LiteralPath $source -Directory)
 foreach ($skill in $sourceSkills) {
     $from = Join-Path $skill.FullName 'SKILL.md'
     $to = Join-Path (Join-Path $target $skill.Name) 'SKILL.md'
-    $expected = Get-Content -LiteralPath $from -Raw
-    $current = if (Test-Path -LiteralPath $to) { Get-Content -LiteralPath $to -Raw } else { $null }
-    if ($current -ne $expected) {
+    if (-not (Test-SameBytes $from $to)) {
         $drift += $skill.Name
         if (-not $Check) {
             New-Item -ItemType Directory -Force -Path (Split-Path $to) | Out-Null
-            [IO.File]::WriteAllText($to, $expected)
+            Copy-Item -LiteralPath $from -Destination $to -Force
         }
     }
 }

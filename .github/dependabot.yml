@@ -11,7 +11,11 @@ updates:
       avalonia:
         patterns: ["Avalonia*"]
       test:
-        patterns: ["xunit*", "Microsoft.NET.Test.Sdk"]
+        patterns: ["xunit*"]
+    ignore:
+      # Avalonia.Headless.XUnit does not discover [AvaloniaFact] tests under xUnit v4 yet.
+      - dependency-name: "xunit.v3"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -1,6 +1,6 @@
 # 測試
 
-測試用 xUnit v3 的 `Category` trait 分成四類。`scripts/verify.ps1` 依範圍挑類別執行。
+測試分成四類，一類一個測試專案（也標了 xUnit `Category` trait，方便在 IDE 篩選）。`scripts/verify.ps1` 依範圍挑測試專案執行，跑的是 Microsoft Testing Platform：任何一個專案跑到 0 個測試就算失敗，避免測試框架升級後測試悄悄消失。
 
 | 類別 | 專案 | 測什麼 | 何時跑 |
 | --- | --- | --- | --- |
